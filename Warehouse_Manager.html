@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>预约进仓&amp;结算</title>
+<style>
+:root {
+  --primary: #2563eb;
+  --primary-light: #dbeafe;
+  --success: #16a34a;
+  --success-light: #dcfce7;
+  --warning: #f59e0b;
+  --warning-light: #fef3c7;
+  --danger: #dc2626;
+  --danger-light: #fee2e2;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-500: #6b7280;
+  --gray-700: #374151;
+  --gray-900: #111827;
+  --white: #ffffff;
+  --radius: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+  --shadow-lg: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.04);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: var(--gray-100);
+  color: var(--gray-900);
+  padding: 0 0 40px 0;
+}
+
+/* ===== Header ===== */
+.header {
+  background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+  color: white;
+  padding: 28px 24px 24px;
+  box-shadow: 0 2px 8px rgba(37,99,235,0.25);
+}
+.header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  text-align: center;
+}
+.header p {
+  font-size: 14px;
+  opacity: 0.85;
+}
+
+/* ===== Layout ===== */
+.container {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 0 24px;
+}
+
+.card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  margin-bottom: 20px;
+  overflow: hidden;
+}
+
+.card-header {
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.card-header h2 {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--gray-900);
+}
+
+/* ===== Form ===== */
+.form-body {
+  padding: 20px;
+}
+.form-row {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+.form-group {
+  flex: 1;
+  min-width: 200px;
+}
+.form-group label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--gray-700);
+  margin-bottom: 6px;
+}
+.form-group label .req { color: var(--danger); }
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  padding: 9px 12px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 14px;
+  transition: border-color 0.15s;
+  background: var(--white);
+}
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+
+.form-actions {
+  margin-top: 16px;
+  display: flex;
+  gap: 12px;
+}
+
+.btn {
+  padding: 9px 22px;
+  border-radius: 8px;
+  border: none;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.btn-primary {
+  background: var(--primary);
+  color: white;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary {
+  background: var(--gray-100);
+  color: var(--gray-700);
+  border: 1.5px solid var(--gray-300);
+}
+.btn-secondary:hover { background: var(--gray-200); }
+.btn-sm {
+  padding: 5px 12px;
+  font-size: 12px;
+  border-radius: 6px;
+}
+
+/* ===== Filters ===== */
+.filters {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.filter-input {
+  padding: 7px 12px;
+  border: 1.5px solid var(--gray-300);
+  border-radius: 8px;
+  font-size: 13px;
+  background: var(--white);
+}
+.filter-input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+/* ===== Table ===== */
+.table-wrapper {
+  overflow-x: auto;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+thead th {
+  background: var(--gray-50);
+  padding: 10px 12px;
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-700);
+  border-bottom: 2px solid var(--gray-200);
+  white-space: nowrap;
+  font-size: 13px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+tbody td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  vertical-align: middle;
+}
+tbody tr:hover {
+  background: var(--gray-50);
+}
+
+/* Tags */
+.tag {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 20px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tag-charge {
+  background: var(--warning-light);
+  color: #92400e;
+}
+.tag-monthly {
+  background: var(--primary-light);
+  color: #1e40af;
+}
+.tag-pending {
+  background: var(--gray-100);
+  color: var(--gray-700);
+}
+.tag-received {
+  background: var(--success-light);
+  color: #166534;
+}
+.tag-settled {
+  background: var(--danger-light);
+  color: #991b1b;
+}
+
+.action-btn {
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+.action-btn:hover { background: var(--gray-100); }
+.action-btn.edit { color: var(--primary); }
+.action-btn.delete { color: var(--danger); }
+
+.empty-row td {
+  text-align: center;
+  padding: 40px;
+  color: var(--gray-500);
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  background: var(--success);
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-lg);
+  z-index: 9999;
+  opacity: 0;
+  transform: translateX(100px);
+  transition: all 0.3s;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+@media (max-width: 768px) {
+  .form-row { flex-direction: column; }
+  .form-group { min-width: 100%; }
+  .filters { flex-direction: column; align-items: stretch; }
+  .filter-input { width: 100%; }
+}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>预约进仓&amp;结算</h1>
+</div>
+
+<div class="container">
+
+  <!-- Form Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2 id="formTitle">新增登记</h2>
+    </div>
+    <div class="form-body">
+      <div class="form-row">
+        <div class="form-group">
+          <label>委托公司 <span class="req">*</span></label>
+          <input type="text" id="company" list="companyList">
+          <datalist id="companyList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>联系人</label>
+          <input type="text" id="contact" list="contactList">
+          <datalist id="contactList"></datalist>
+        </div>
+        <div class="form-group">
+          <label>进仓编号 <span class="req">*</span></label>
+          <input type="text" id="receiptNo">
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>进仓日期</label>
+          <input type="date" id="receiptTime">
+        </div>
+        <div class="form-group">
+          <label>结算方式 <span class="req">*</span></label>
+          <select id="settlement">
+            <option value="charge">现结</option>
+            <option value="monthly">月结</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>状态</label>
+          <select id="status">
+            <option value="pending">待收货</option>
+            <option value="received">已收货</option>
+            <option value="settled">已结算</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>备注</label>
+          <input type="text" id="remark" maxlength="15">
+        </div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-primary" onclick="saveRecord()">保存登记</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Table Card -->
+  <div class="card">
+    <div class="card-header">
+      <h2>登记列表</h2>
+      <div class="filters">
+        <select class="filter-input" id="filterSettlement" onchange="renderTable()">
+          <option value="">全部结算方式</option>
+          <option value="charge">现结</option>
+          <option value="monthly">月结</option>
+        </select>
+        <select class="filter-input" id="filterStatus" onchange="renderTable()">
+          <option value="">全部状态</option>
+          <option value="pending">待收货</option>
+          <option value="received">已收货</option>
+          <option value="settled">已结算</option>
+        </select>
+        <input type="text" class="filter-input" id="searchInput" placeholder="搜索公司/编号/联系人..." oninput="renderTable()" style="min-width:200px">
+        <button class="btn btn-secondary btn-sm" onclick="exportCSV()">导出 CSV</button>
+      </div>
+    </div>
+    <div class="table-wrapper">
+      <table id="dataTable">
+        <thead>
+          <tr>
+            <th>委托公司</th>
+            <th>联系人</th>
+            <th>进仓编号</th>
+            <th>进仓日期</th>
+            <th>结算方式</th>
+            <th>状态</th>
+            <th>备注</th>
+            <th>操作</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const STORAGE_KEY = 'warehouse_receipt_records';
+let editingId = null;
+
+// ===== Storage =====
+function loadRecords() {
+  try {
+    const data = localStorage.getItem(STORAGE_KEY);
+    const list = data ? JSON.parse(data) : [];
+    list.forEach(r => {
+      if (r.receiptTime && r.receiptTime.includes('T')) r.receiptTime = r.receiptTime.slice(0, 10);
+    });
+    return list;
+  } catch(e) { return []; }
+}
+
+function saveRecords(records) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
+}
+
+// ===== Save / Update =====
+function saveRecord() {
+  const company = document.getElementById('company').value.trim();
+  const contact = document.getElementById('contact').value.trim();
+  const receiptNo = document.getElementById('receiptNo').value.trim();
+  const receiptTime = document.getElementById('receiptTime').value;
+  const settlement = document.getElementById('settlement').value;
+  const status = document.getElementById('status').value;
+  const remark = document.getElementById('remark').value.trim();
+
+  if (!company) { showToast('请填写委托公司', 'error'); return; }
+  if (!receiptNo) { showToast('请填写进仓编号', 'error'); return; }
+
+  const records = loadRecords();
+
+  if (editingId !== null) {
+    const idx = records.findIndex(r => String(r.id) === String(editingId));
+    if (idx > -1) {
+      records[idx] = { ...records[idx], company, contact, receiptNo, receiptTime, settlement, status, remark };
+    }
+    showToast('已更新登记');
+    editingId = null;
+  } else {
+    records.unshift({
+      id: Date.now(),
+      company, contact, receiptNo, receiptTime, settlement, status, remark,
+      createdAt: new Date().toISOString()
+    });
+    showToast('已保存登记');
+  }
+
+  saveRecords(records);
+  resetForm();
+  renderAll();
+}
+
+function editRecord(id) {
+  const records = loadRecords();
+  const r = records.find(r => String(r.id) === String(id));
+  if (!r) return;
+
+  editingId = id;
+  document.getElementById('formTitle').textContent = '编辑登记';
+  document.getElementById('company').value = r.company || '';
+  document.getElementById('contact').value = r.contact || '';
+  document.getElementById('receiptNo').value = r.receiptNo || '';
+  document.getElementById('receiptTime').value = r.receiptTime || '';
+  document.getElementById('settlement').value = r.settlement || 'charge';
+  document.getElementById('status').value = r.status || 'pending';
+  document.getElementById('remark').value = r.remark || '';
+
+  renderContactList();
+  document.getElementById('formTitle').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function deleteRecord(id) {
+  if (!confirm('确定删除这条登记吗？')) return;
+  const records = loadRecords().filter(r => String(r.id) !== String(id));
+  saveRecords(records);
+  showToast('已删除');
+  renderAll();
+}
+
+// ===== Reset =====
+function resetForm() {
+  editingId = null;
+  document.getElementById('formTitle').textContent = '新增登记';
+  document.getElementById('company').value = '';
+  document.getElementById('contact').value = '';
+  document.getElementById('receiptNo').value = '';
+  document.getElementById('receiptTime').value = '';
+  document.getElementById('settlement').value = 'charge';
+  document.getElementById('status').value = 'pending';
+  document.getElementById('remark').value = '';
+}
+
+// ===== Render =====
+function renderAll() {
+  renderTable();
+  renderCompanyList();
+  renderContactList();
+}
+
+function renderTable() {
+  const records = loadRecords();
+  const filterSettlement = document.getElementById('filterSettlement').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  let filtered = records.filter(r => {
+    if (filterSettlement && r.settlement !== filterSettlement) return false;
+    if (filterStatus && r.status !== filterStatus) return false;
+    if (search) {
+      const text = `${r.company || ''} ${r.receiptNo || ''} ${r.contact || ''}`.toLowerCase();
+      if (!text.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const tbody = document.getElementById('tableBody');
+  if (filtered.length === 0) {
+    tbody.innerHTML = `<tr class="empty-row"><td colspan="8">暂无登记记录</td></tr>`;
+    return;
+  }
+
+  const settleMap = { charge: { text: '现结', cls: 'tag-charge' }, monthly: { text: '月结', cls: 'tag-monthly' } };
+  const statusMap = {
+    pending: { text: '待收货', cls: 'tag-pending' },
+    received: { text: '已收货', cls: 'tag-received' },
+    settled: { text: '已结算', cls: 'tag-settled' }
+  };
+
+  tbody.innerHTML = filtered.map(r => {
+    const settle = settleMap[r.settlement] || settleMap.charge;
+    const st = statusMap[r.status] || statusMap.pending;
+    const timeStr = r.receiptTime || '-';
+    return `<tr>
+      <td style="font-weight:600">${esc(r.company)}</td>
+      <td>${esc(r.contact) || '-'}</td>
+      <td style="font-family:monospace">${esc(r.receiptNo)}</td>
+      <td style="white-space:nowrap">${timeStr}</td>
+      <td><span class="tag ${settle.cls}">${settle.text}</span></td>
+      <td><span class="tag ${st.cls}">${st.text}</span></td>
+      <td style="max-width:200px;color:var(--gray-500)">${esc(r.remark) || '-'}</td>
+      <td style="white-space:nowrap">
+        <button class="action-btn edit" onclick="editRecord('${r.id}')">编辑</button>
+        <button class="action-btn delete" onclick="deleteRecord('${r.id}')">删除</button>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function renderCompanyList() {
+  const records = loadRecords();
+  const companies = [...new Set(records.map(r => r.company).filter(Boolean))];
+  document.getElementById('companyList').innerHTML = companies.map(c => `<option value="${esc(c)}">`).join('');
+}
+
+function renderContactList() {
+  const records = loadRecords();
+  const company = document.getElementById('company').value.trim().toLowerCase();
+  let contacts;
+  if (company) {
+    const matched = records
+      .filter(r => (r.company || '').toLowerCase() === company && r.contact)
+      .map(r => r.contact);
+    contacts = matched.length ? matched : records.map(r => r.contact).filter(Boolean);
+  } else {
+    contacts = records.map(r => r.contact).filter(Boolean);
+  }
+  const unique = [...new Set(contacts)];
+  document.getElementById('contactList').innerHTML = unique.map(c => `<option value="${esc(c)}">`).join('');
+}
+
+// ===== Export =====
+function exportCSV() {
+  const records = loadRecords();
+  if (records.length === 0) { showToast('无数据可导出', 'error'); return; }
+
+  const filterSettlement = document.getElementById('filterSettlement').value;
+  const filterStatus = document.getElementById('filterStatus').value;
+  const search = document.getElementById('searchInput').value.trim().toLowerCase();
+
+  let filtered = records.filter(r => {
+    if (filterSettlement && r.settlement !== filterSettlement) return false;
+    if (filterStatus && r.status !== filterStatus) return false;
+    if (search) {
+      const text = `${r.company || ''} ${r.receiptNo || ''} ${r.contact || ''}`.toLowerCase();
+      if (!text.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const settleText = { charge: '现结', monthly: '月结' };
+  const statusText = { pending: '待收货', received: '已收货', settled: '已结算' };
+
+  const header = ['委托公司', '联系人', '进仓编号', '进仓日期', '结算方式', '状态', '备注'];
+  const rows = filtered.map(r => [
+    r.company || '',
+    r.contact || '',
+    r.receiptNo || '',
+    r.receiptTime || '',
+    settleText[r.settlement] || '',
+    statusText[r.status] || '',
+    r.remark || ''
+  ]);
+
+  const csv = '\uFEFF' + [header, ...rows].map(row =>
+    row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(',')
+  ).join('\n');
+
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = `收货登记_${new Date().toISOString().slice(0,10)}.csv`;
+  link.click();
+  URL.revokeObjectURL(link.href);
+  showToast('已导出 CSV');
+}
+
+// ===== Utils =====
+function esc(str) {
+  if (!str) return '';
+  return String(str).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function showToast(msg, type) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.style.background = type === 'error' ? 'var(--danger)' : 'var(--success)';
+  toast.classList.add('show');
+  setTimeout(() => toast.classList.remove('show'), 2000);
+}
+
+// ===== Init =====
+document.getElementById('company').addEventListener('input', renderContactList);
+document.getElementById('company').addEventListener('change', renderContactList);
+resetForm();
+renderAll();
+</script>
+
+</body>
+</html>
